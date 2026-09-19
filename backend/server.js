@@ -1,4 +1,3 @@
-// Fix for 'crypto is not defined' issue
 const crypto = require('crypto');
 if (!global.crypto) {
   global.crypto = crypto;
@@ -11,36 +10,11 @@ const path = require('path');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
-// Serve index.html or root route message
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'), (err) => {
-    if (err) {
-      res.send('Server is running successfully! Access API at /api/posts or /api/users');
-    }
-  });
-});
+app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Auto Start In-Memory MongoDB Server
-async function startDatabaseAndServer() {
-  try {
-    const mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    await mongoose.connect(uri);
-    console.log('MongoDB Connected Successfully (In-Memory DB Running)');
-
-    // Use Render's dynamic port or default to 5000
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  } catch (err) {
-    console.error('Database connection failed:', err.message);
-  }
-}
-
-// Schemas
 const UserSchema = new mongoose.Schema({
   role: String,
   name: String,
@@ -79,12 +53,10 @@ const PostSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 const Post = mongoose.model('Post', PostSchema);
 
-// Auth Routes
 app.post('/api/signup', async (req, res) => {
   try {
     const existing = await User.findOne({ email: req.body.email });
     if (existing) return res.status(400).json({ error: 'Email already exists' });
-
     const newUser = new User(req.body);
     await newUser.save();
     res.json(newUser);
@@ -103,7 +75,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Data Routes
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find();
@@ -143,5 +114,22 @@ app.post('/api/posts/:id/comment', async (req, res) => {
   }
 });
 
-// Start Server
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
+async function startDatabaseAndServer() {
+  try {
+    const mongoServer = await MongoMemoryServer.create();
+    const uri = mongoServer.getUri();
+    await mongoose.connect(uri);
+    console.log('MongoDB Connected Successfully (In-Memory DB Running)');
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+  }
+}
+
 startDatabaseAndServer();
