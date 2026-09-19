@@ -7,11 +7,21 @@ if (!global.crypto) {
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Serve index.html or root route message
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'), (err) => {
+    if (err) {
+      res.send('Server is running successfully! Access API at /api/posts or /api/users');
+    }
+  });
+});
 
 // Auto Start In-Memory MongoDB Server
 async function startDatabaseAndServer() {
@@ -22,7 +32,8 @@ async function startDatabaseAndServer() {
     await mongoose.connect(uri);
     console.log('MongoDB Connected Successfully (In-Memory DB Running)');
 
-    const PORT = 5000;
+    // Use Render's dynamic port or default to 5000
+    const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (err) {
     console.error('Database connection failed:', err.message);
