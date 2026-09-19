@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Service - Service Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+  <!-- Polyfill for Crypto -->
+  <script>
+    if (!window.crypto) {
+      window.crypto = {
+        getRandomValues: function (buffer) {
+          for (let i = 0; i < buffer.length; i++) {
+            buffer[i] = Math.floor(Math.random() * 256);
+          }
+          return buffer;
+        }
+      };
+    }
+  </script>
+
+  <!-- Navbar -->
+  <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-2">
+      <h1 class="text-xl font-bold flex items-center gap-2 cursor-pointer" onclick="showSection('workFeed')">
+        <i class="fa-solid fa-screwdriver-wrench"></i> Room Service
+      </h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <button onclick="showSection('workFeed')" class="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-700 rounded text-xs font-medium">পোস্টসমূহ</button>
+        <button onclick="showSection('postWork')" class="px-3 py-1.5 bg-green-500 hover:bg-green-600 rounded text-xs font-medium">কাজ পোস্ট করুন</button>
+        
+        <div id="authButtons" class="flex gap-2">
+          <button onclick="openAuthModal('Customer')" class="px-3 py-1.5 bg-white text-indigo-600 hover:bg-indigo-50 rounded text-xs font-semibold">Customer Login</button>
+          <button onclick="openAuthModal('Service Provider')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 rounded text-xs font-semibold text-white">Service Provider Login</button>
+        </div>
+
+        <div id="userProfileNav" class="hidden flex items-center gap-3">
+          <span class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200" id="navUserRole"></span>
+          <span id="navUserName" class="text-sm font-bold"></span>
+          <button onclick="logout()" class="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+
+    <!-- Auth Section -->
+    <section id="authSection" class="hidden space-y-6">
+      <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg border">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h2 id="authTitle" class="text-lg font-bold text-indigo-600">Authentication</h2>
+          <button onclick="showSection('workFeed')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <!-- Login / Signup Toggle Tabs -->
+        <div class="flex border-b mb-4">
+          <button id="tabLoginBtn" onclick="toggleAuthMode('login')" class="w-1/2 py-2 text-center text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Login</button>
+          <button id="tabSignupBtn" onclick="toggleAuthMode('signup')" class="w-1/2 py-2 text-center text-sm font-bold text-gray-500 hover:text-indigo-600">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleAuthSubmit(event, 'login')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Email</label>
+            <input type="email" id="loginEmail" required placeholder="example@gmail.com" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Password</label>
+            <input type="password" id="loginPass" required placeholder="********" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded text-sm font-semibold shadow">Login</button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" onsubmit="handleAuthSubmit(event, 'signup')" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Full Name</label>
+            <input type="text" id="signupName" required placeholder="Apnar Naam" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Email</label>
+            <input type="email" id="signupEmail" required placeholder="example@gmail.com" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Password</label>
+            <input type="password" id="signupPass" required placeholder="********" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Mobile Number</label>
+            <input type="text" id="signupMobile" placeholder="017xxxxxxxx" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Address</label>
+            <input type="text" id="signupAddress" placeholder="Dhaka, Bangladesh" class="w-full border p-2 rounded text-sm outline-none focus:border-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded text-sm font-semibold shadow">Create Account</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Post Work Section -->
+    <section id="postWork" class="space-y-6 hidden">
+      <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md border">
+        <h2 class="text-xl font-bold mb-4 text-green-600 border-b pb-2 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle"></i> নতুন কাজ পোস্ট করুন
+        </h2>
+        <form onsubmit="handleCreatePost(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Category Select Korun</label>
+            <select id="postCategory" required class="w-full border p-2 rounded bg-white outline-none focus:border-green-500">
+              <option value="AC repair">AC repair</option>
+              <option value="TV repair">TV repair</option>
+              <option value="Electrical Service">Electrical Service</option>
+              <option value="Home Cleaning">Home Cleaning</option>
+              <option value="Plumbing Service">Plumbing Service</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Kajer Biboron (Details)</label>
+            <textarea id="postDetails" required placeholder="Kajer details ebong address likhun..." class="w-full border p-2 rounded outline-none focus:border-green-500" rows="3"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ছবি যুক্ত করুন (Image Upload / URL)</label>
+            <input type="file" id="postImageFile" accept="image/*" class="w-full border p-2 rounded text-sm text-gray-600 outline-none focus:border-green-500 mb-2">
+            <p class="text-xs text-gray-400 text-center font-semibold mb-1">- অথবা ছবির লিঙ্ক (URL) দিন -</p>
+            <input type="url" id="postImageUrl" placeholder="https://example.com/image.jpg" class="w-full border p-2 rounded text-sm outline-none focus:border-green-500">
+          </div>
+          <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700 transition shadow">Post Work</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Work Feed Section -->
+    <section id="workFeed" class="space-y-6">
+      
+      <!-- Category Filter Bar -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap items-center justify-between gap-4">
+        <h3 class="font-bold text-gray-700 text-base flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-indigo-600"></i> পোস্টসমূহ (Work Feed)
+        </h3>
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-semibold text-gray-600">Filter Category:</label>
+          <select id="filterCategory" onchange="renderPosts()" class="border p-2 rounded text-xs bg-gray-50 font-medium outline-none focus:border-indigo-500">
+            <option value="All">All Categories</option>
+            <option value="AC repair">AC repair</option>
+            <option value="TV repair">TV repair</option>
+            <option value="Electrical Service">Electrical Service</option>
+            <option value="Home Cleaning">Home Cleaning</option>
+            <option value="Plumbing Service">Plumbing Service</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Posts List -->
+      <div class="space-y-4" id="postsContainer"></div>
+    </section>
+
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+    let selectedRole = 'Customer';
+    let currentAuthMode = 'login';
+
+    function updateNavbar() {
+      if (currentUser) {
+        document.getElementById('authButtons').classList.add('hidden');
+        document.getElementById('userProfileNav').classList.remove('hidden');
+        document.getElementById('navUserName').innerText = currentUser.name || currentUser.email;
+        document.getElementById('navUserRole').innerText = currentUser.role || 'User';
+      } else {
+        document.getElementById('authButtons').classList.remove('hidden');
+        document.getElementById('userProfileNav').classList.add('hidden');
+      }
+    }
+
+    function showSection(sectionId) {
+      ['authSection', 'postWork', 'workFeed'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+      if (sectionId === 'workFeed') renderPosts();
+    }
+
+    function openAuthModal(role) {
+      selectedRole = role;
+      document.getElementById('authTitle').innerText = `${role} Access`;
+      toggleAuthMode('login');
+      showSection('authSection');
+    }
+
+    function toggleAuthMode(mode) {
+      currentAuthMode = mode;
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const tabLogin = document.getElementById('tabLoginBtn');
+      const tabSignup = document.getElementById('tabSignupBtn');
+
+      if (mode === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        tabLogin.className = "w-1/2 py-2 text-center text-sm font-bold text-indigo-600 border-b-2 border-indigo-600";
+        tabSignup.className = "w-1/2 py-2 text-center text-sm font-bold text-gray-500 hover:text-indigo-600";
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        tabSignup.className = "w-1/2 py-2 text-center text-sm font-bold text-indigo-600 border-b-2 border-indigo-600";
+        tabLogin.className = "w-1/2 py-2 text-center text-sm font-bold text-gray-500 hover:text-indigo-600";
+      }
+    }
+
+    async function handleAuthSubmit(e, type) {
+      e.preventDefault();
+      
+      let payload = { role: selectedRole };
+      
+      if (type === 'login') {
+        payload.email = document.getElementById('loginEmail').value;
+        payload.pass = document.getElementById('loginPass').value;
+      } else {
+        payload.name = document.getElementById('signupName').value;
+        payload.email = document.getElementById('signupEmail').value;
+        payload.pass = document.getElementById('signupPass').value;
+        payload.mobile = document.getElementById('signupMobile').value;
+        payload.address = document.getElementById('signupAddress').value;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/${type}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(type === 'login' ? 'Login successful!' : 'Account created successfully!');
+          currentUser = data;
+          localStorage.setItem('currentUser', JSON.stringify(data));
+          updateNavbar();
+          showSection('workFeed');
+        } else {
+          alert(data.error || 'Operation failed!');
+        }
+      } catch (err) {
+        alert('Server error! Make sure backend is running.');
+      }
+    }
+
+    // Helper to Convert File to Base64 Image String
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    async function handleCreatePost(e) {
+      e.preventDefault();
+      if (!currentUser) {
+        alert('কাজ পোস্ট করার আগে লগইন করুন!');
+        openAuthModal('Customer');
+        return;
+      }
+
+      const fileInput = document.getElementById('postImageFile');
+      const urlInput = document.getElementById('postImageUrl').value;
+      let imageUrl = urlInput;
+
+      if (fileInput.files.length > 0) {
+        try {
+          imageUrl = await fileToBase64(fileInput.files[0]);
+        } catch (err) {
+          alert('ছবি আপলোডে সমস্যা হয়েছে!');
+          return;
+        }
+      }
+
+      const newPost = {
+        userId: currentUser._id,
+        customerName: currentUser.name || 'Anonymous User',
+        category: document.getElementById('postCategory').value,
+        details: document.getElementById('postDetails').value,
+        image: imageUrl || '',
+        comments: []
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPost)
+        });
+
+        if (res.ok) {
+          alert('পোস্ট সফলভাবে তৈরি হয়েছে!');
+          document.getElementById('postDetails').value = '';
+          document.getElementById('postImageUrl').value = '';
+          fileInput.value = '';
+          showSection('workFeed');
+        }
+      } catch (err) {
+        alert('Post create kora jayni!');
+      }
+    }
+
+    async function handleAddComment(postId) {
+      const inputEl = document.getElementById(`commentInput-${postId}`);
+      const text = inputEl.value.trim();
+
+      if (!text) {
+        alert('কমেন্ট লিখতে কিছু টাইপ করুন!');
+        return;
+      }
+
+      const commentData = {
+        id: Date.now(),
+        userId: currentUser ? currentUser._id : 'guest',
+        userName: currentUser ? currentUser.name : 'Guest User',
+        text: text
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/posts/${postId}/comment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(commentData)
+        });
+
+        if (res.ok) {
+          inputEl.value = '';
+          renderPosts();
+        } else {
+          alert('কমেন্ট যোগ করা যায়নি!');
+        }
+      } catch (err) {
+        alert('Server error! Comment kora jayni.');
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('currentUser');
+      updateNavbar();
+      showSection('workFeed');
+    }
+
+    async function renderPosts() {
+      try {
+        const res = await fetch(`${API_URL}/posts`);
+        const posts = await res.json();
+        const container = document.getElementById('postsContainer');
+        const selectedCat = document.getElementById('filterCategory').value;
+        
+        container.innerHTML = '';
+
+        const filteredPosts = selectedCat === 'All' 
+          ? posts 
+          : posts.filter(post => post.category === selectedCat);
+
+        if (filteredPosts.length === 0) {
+          container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-gray-500 border">এই ক্যাটাগরিতে কোনো পোস্ট পাওয়া যায়নি।</div>`;
+          return;
+        }
+
+        filteredPosts.forEach(post => {
+          // Render Image HTML if image exists
+          const imageHtml = post.image ? `
+            <div class="my-3 overflow-hidden rounded-lg border">
+              <img src="${post.image}" alt="Post Image" class="w-full max-h-80 object-cover">
+            </div>
+          ` : '';
+
+          // Render Comments HTML
+          let commentsHtml = '';
+          if (post.comments && post.comments.length > 0) {
+            commentsHtml = post.comments.map(c => `
+              <div class="bg-gray-50 p-2.5 rounded text-xs border space-y-1">
+                <span class="font-bold text-indigo-600"><i class="fa-solid fa-user-circle"></i> ${c.userName}:</span>
+                <span class="text-gray-700">${c.text}</span>
+              </div>
+            `).join('');
+          } else {
+            commentsHtml = `<p class="text-xs text-gray-400 italic">এখনো কোনো কমেন্ট করা হয়নি।</p>`;
+          }
+
+          container.innerHTML += `
+            <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+              <div class="flex justify-between items-start">
+                <span class="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md font-bold">${post.category}</span>
+                <span class="text-xs text-gray-400"><i class="fa-solid fa-user"></i> ${post.customerName}</span>
+              </div>
+              
+              <p class="text-sm text-gray-800 leading-relaxed font-medium">${post.details}</p>
+
+              ${imageHtml}
+
+              <!-- Comment Section -->
+              <div class="border-t pt-3 mt-3 space-y-3">
+                <h4 class="text-xs font-bold text-gray-600 flex items-center gap-1">
+                  <i class="fa-regular fa-comments text-indigo-500"></i> কমেন্টসমূহ (${post.comments ? post.comments.length : 0}):
+                </h4>
+                
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                  ${commentsHtml}
+                </div>
+
+                <!-- Add Comment Input Box -->
+                <div class="flex gap-2 pt-1">
+                  <input type="text" id="commentInput-${post._id}" placeholder="কমেন্ট লিখুন..." class="flex-1 border p-2 rounded text-xs outline-none focus:border-indigo-500">
+                  <button onclick="handleAddComment('${post._id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs font-semibold hover:bg-indigo-700 transition">
+                    Comment
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+      }
+    }
+
+    updateNavbar();
+    renderPosts();
+  </script>
+</body>
+</html>
