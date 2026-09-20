@@ -53,6 +53,25 @@ const PostSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 const Post = mongoose.model('Post', PostSchema);
 
+async function createAdminUser() {
+  try {
+    const adminEmail = 'sayankabery22@gmail.com';
+    const adminPass = 'Kabery2004';
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    if (!existingAdmin) {
+      const admin = new User({
+        role: 'Admin',
+        name: 'Admin',
+        email: adminEmail,
+        pass: adminPass
+      });
+      await admin.save();
+    }
+  } catch (err) {
+    console.error('Admin user creation error:', err.message);
+  }
+}
+
 app.post('/api/signup', async (req, res) => {
   try {
     const existing = await User.findOne({ email: req.body.email });
@@ -124,6 +143,8 @@ async function startDatabaseAndServer() {
     const uri = mongoServer.getUri();
     await mongoose.connect(uri);
     console.log('MongoDB Connected Successfully (In-Memory DB Running)');
+
+    await createAdminUser();
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
