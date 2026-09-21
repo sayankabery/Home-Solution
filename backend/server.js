@@ -7,7 +7,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -139,10 +138,9 @@ app.use((req, res) => {
 
 async function startDatabaseAndServer() {
   try {
-    const mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-    console.log('MongoDB Connected Successfully (In-Memory DB Running)');
+    const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://sayankabery22_db_user:Kabery2004@cluster0.spnqtw5.mongodb.net/?appName=Cluster0";
+    await mongoose.connect(MONGO_URI);
+    console.log('MongoDB Connected Successfully');
 
     await createAdminUser();
 
