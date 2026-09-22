@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-if (!globalcrypto) {
+
+if (!global.crypto) {
   global.crypto = crypto;
 }
 
