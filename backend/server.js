@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-if (!global.crypto) {
+if (!globalcrypto) {
   global.crypto = crypto;
 }
 
@@ -102,6 +102,39 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users/:id/rate', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (req.body.rating) {
+      user.rating = req.body.rating;
+      await user.save();
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find().sort({ _id: -1 });
@@ -121,6 +154,15 @@ app.post('/api/posts', async (req, res) => {
   }
 });
 
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Post deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/posts/:id/comment', async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -132,8 +174,20 @@ app.post('/api/posts/:id/comment', async (req, res) => {
   }
 });
 
+app.delete('/api/posts/:postId/comment/:commentId', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    post.comments = post.comments.filter(c => c.id.toString() !== req.params.commentId.toString());
+    await post.save();
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/index_4.html'));
 });
 
 async function startDatabaseAndServer() {

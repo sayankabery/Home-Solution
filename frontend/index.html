@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Room Service - Service Portal</title>
+  <title>Home Solution - Service Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -22,10 +22,23 @@
     }
   </script>
 
-  <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+  <div id="welcomeScreen" class="fixed inset-0 bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 z-50 flex flex-col items-center justify-center text-white p-4">
+    <div class="text-center space-y-6 max-w-lg bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 shadow-2xl">
+      <div class="w-20 h-20 bg-white text-indigo-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-lg">
+        <i class="fa-solid fa-house-chimney-crack"></i>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-extrabold tracking-wide">Welcome to Home Solution</h1>
+      <p class="text-indigo-100 text-sm md:text-base leading-relaxed">Apnar shob dhoroner griho-sheba ebong shahajyer jonno amra achi apnar pashe.</p>
+      <button onclick="enterWebsite()" class="px-8 py-3 bg-white text-indigo-700 hover:bg-indigo-50 font-bold rounded-full text-base transition duration-300 shadow-xl transform hover:scale-105">
+        Get Started <i class="fa-solid fa-arrow-right ml-2"></i>
+      </button>
+    </div>
+  </div>
+
+  <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-2">
       <h1 class="text-xl font-bold flex items-center gap-2 cursor-pointer" onclick="showSection('workFeed')">
-        <i class="fa-solid fa-screwdriver-wrench"></i> Room Service
+        <i class="fa-solid fa-house-chimney-crack"></i> Home Solution
       </h1>
       <div class="flex flex-wrap gap-2 items-center">
         <button onclick="showSection('workFeed')" class="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-700 rounded text-xs font-medium">পোস্টসমূহ</button>
@@ -37,8 +50,8 @@
           <button onclick="openAuthModal('Admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded text-xs font-semibold text-white">Admin Login</button>
         </div>
         <div id="userProfileNav" class="hidden flex items-center gap-3">
-          <span class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200" id="navUserRole"></span>
-          <span id="navUserName" class="text-sm font-bold"></span>
+          <span class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200 cursor-pointer" id="navUserRole" onclick="openProfileModal(currentUser._id)"></span>
+          <span id="navUserName" class="text-sm font-bold cursor-pointer hover:underline" onclick="openProfileModal(currentUser._id)"></span>
           <button onclick="logout()" class="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs">Logout</button>
         </div>
       </div>
@@ -155,20 +168,39 @@
 
         <div>
           <h3 class="font-bold text-gray-700 mb-2 text-sm flex items-center gap-1">
-            <i class="fa-solid fa-users text-indigo-600"></i> Registered Users List
+            <i class="fa-solid fa-user-group text-blue-600"></i> Customer List
           </h3>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto mb-6">
             <table class="w-full text-left text-sm text-gray-600 border">
-              <thead class="bg-purple-100 text-purple-900 uppercase text-xs">
+              <thead class="bg-blue-100 text-blue-900 uppercase text-xs">
                 <tr>
                   <th class="p-3 border">Name</th>
                   <th class="p-3 border">Email</th>
-                  <th class="p-3 border">Role</th>
                   <th class="p-3 border">Mobile</th>
                   <th class="p-3 border">Address</th>
+                  <th class="p-3 border text-center">Action</th>
                 </tr>
               </thead>
-              <tbody id="adminUsersList"></tbody>
+              <tbody id="adminCustomerList"></tbody>
+            </table>
+          </div>
+
+          <h3 class="font-bold text-gray-700 mb-2 text-sm flex items-center gap-1">
+            <i class="fa-solid fa-user-gear text-amber-600"></i> Service Provider List
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600 border">
+              <thead class="bg-amber-100 text-amber-900 uppercase text-xs">
+                <tr>
+                  <th class="p-3 border">Name</th>
+                  <th class="p-3 border">Email</th>
+                  <th class="p-3 border">Mobile</th>
+                  <th class="p-3 border">Working Count</th>
+                  <th class="p-3 border">Rating</th>
+                  <th class="p-3 border text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminServiceProviderList"></tbody>
             </table>
           </div>
         </div>
@@ -185,6 +217,7 @@
                   <th class="p-3 border">Category</th>
                   <th class="p-3 border">Details</th>
                   <th class="p-3 border">Comments Count</th>
+                  <th class="p-3 border text-center">Action</th>
                 </tr>
               </thead>
               <tbody id="adminPostsList"></tbody>
@@ -213,8 +246,53 @@
         </div>
       </div>
 
-      <div class="space-y-4" id="postsContainer"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="postsContainer"></div>
     </section>
+  </div>
+
+  <div id="postModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <span id="modalCategory" class="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md font-bold"></span>
+        <button onclick="closePostModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div id="modalCustomerName" class="text-sm font-semibold text-gray-600 cursor-pointer hover:underline"></div>
+      <p id="modalDetails" class="text-gray-800 text-sm font-medium leading-relaxed"></p>
+      <div id="modalImageContainer"></div>
+
+      <div class="border-t pt-4 space-y-3">
+        <h4 class="text-xs font-bold text-gray-600 flex items-center gap-1"><i class="fa-regular fa-comments text-indigo-500"></i>কমেন্টসমূহ:</h4>
+        <div id="modalCommentsContainer" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        <div id="modalCommentInputSection" class="flex gap-2 pt-2 border-t"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-lg font-bold text-indigo-600 flex items-center gap-2"><i class="fa-solid fa-id-card"></i> User Profile</h3>
+        <button onclick="closeProfileModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div id="profileDetails" class="space-y-2 text-sm text-gray-700"></div>
+      <div id="ratingSection" class="border-t pt-3 hidden space-y-2">
+        <p class="text-xs font-semibold text-gray-600">Rate this User:</p>
+        <div class="flex items-center gap-2">
+          <select id="userRatingInput" class="border p-1.5 rounded text-xs outline-none bg-white">
+            <option value="5.0">5.0 ⭐</option>
+            <option value="4.0">4.0 ⭐</option>
+            <option value="3.0">3.0 ⭐</option>
+            <option value="2.0">2.0 ⭐</option>
+            <option value="1.0">1.0 ⭐</option>
+          </select>
+          <button id="submitRatingBtn" class="px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600">Give Rating</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -222,6 +300,11 @@
     let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
     let selectedRole = 'Customer';
     let currentAuthMode = 'login';
+    let currentViewingPost = null;
+
+    function enterWebsite() {
+      document.getElementById('welcomeScreen').classList.add('hidden');
+    }
 
     function updateNavbar() {
       if (currentUser) {
@@ -345,21 +428,40 @@
       try {
         const resUsers = await fetch(`${API_URL}/users`);
         const users = await resUsers.json();
-        const usersContainer = document.getElementById('adminUsersList');
-        usersContainer.innerHTML = '';
+        const customerList = document.getElementById('adminCustomerList');
+        const providerList = document.getElementById('adminServiceProviderList');
+        customerList.innerHTML = '';
+        providerList.innerHTML = '';
 
         document.getElementById('adminTotalUsers').innerText = users.length || 0;
 
         users.forEach(u => {
-          usersContainer.innerHTML += `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-3 border font-semibold">${u.name || 'N/A'}</td>
-              <td class="p-3 border">${u.email}</td>
-              <td class="p-3 border"><span class="px-2 py-0.5 rounded text-xs ${u.role === 'Admin' ? 'bg-purple-200 text-purple-800 font-bold' : u.role === 'Service Provider' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${u.role || 'User'}</span></td>
-              <td class="p-3 border">${u.mobile || 'N/A'}</td>
-              <td class="p-3 border">${u.address || 'N/A'}</td>
-            </tr>
-          `;
+          if (u.role === 'Customer') {
+            customerList.innerHTML += `
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 border font-semibold hover:underline text-indigo-600 cursor-pointer" onclick="openProfileModal('${u._id}')">${u.name || 'N/A'}</td>
+                <td class="p-3 border">${u.email}</td>
+                <td class="p-3 border">${u.mobile || 'N/A'}</td>
+                <td class="p-3 border">${u.address || 'N/A'}</td>
+                <td class="p-3 border text-center">
+                  <button onclick="deleteUser('${u._id}')" class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"><i class="fa-solid fa-trash"></i> Delete</button>
+                </td>
+              </tr>
+            `;
+          } else if (u.role === 'Service Provider') {
+            providerList.innerHTML += `
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 border font-semibold hover:underline text-amber-600 cursor-pointer" onclick="openProfileModal('${u._id}')">${u.name || 'N/A'}</td>
+                <td class="p-3 border">${u.email}</td>
+                <td class="p-3 border">${u.mobile || 'N/A'}</td>
+                <td class="p-3 border text-center font-bold text-gray-700">${u.workingCount || 0}</td>
+                <td class="p-3 border font-bold text-amber-500">${u.rating || '5.0'} ⭐</td>
+                <td class="p-3 border text-center">
+                  <button onclick="deleteUser('${u._id}')" class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"><i class="fa-solid fa-trash"></i> Delete</button>
+                </td>
+              </tr>
+            `;
+          }
         });
 
         const resPosts = await fetch(`${API_URL}/posts`);
@@ -372,16 +474,124 @@
         posts.forEach(p => {
           postsContainer.innerHTML += `
             <tr class="border-b hover:bg-gray-50">
-              <td class="p-3 border font-semibold">${p.customerName || 'N/A'}</td>
+              <td class="p-3 border font-semibold hover:underline cursor-pointer" onclick="openProfileModal('${p.userId}')">${p.customerName || 'N/A'}</td>
               <td class="p-3 border font-medium text-indigo-600">${p.category}</td>
               <td class="p-3 border text-xs max-w-xs truncate">${p.details}</td>
               <td class="p-3 border"><span class="px-2 py-0.5 bg-gray-100 border rounded text-xs font-bold">${p.comments ? p.comments.length : 0}</span></td>
+              <td class="p-3 border text-center">
+                <button onclick="deletePost('${p._id}')" class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"><i class="fa-solid fa-trash"></i> Delete</button>
+              </td>
             </tr>
           `;
         });
 
       } catch (err) {
         alert('Failed to load admin dashboard data!');
+      }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Are you sure you want to delete this user?')) return;
+      try {
+        const res = await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          alert('User deleted successfully');
+          showAdminDashboard();
+        }
+      } catch (err) {
+        alert('Failed to delete user!');
+      }
+    }
+
+    async function deletePost(id) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+      try {
+        const res = await fetch(`${API_URL}/posts/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          alert('Post deleted successfully');
+          if (currentUser && currentUser.role === 'Admin') showAdminDashboard();
+          else renderPosts();
+        }
+      } catch (err) {
+        alert('Failed to delete post!');
+      }
+    }
+
+    async function deleteComment(postId, commentId) {
+      if (!confirm('Are you sure you want to delete this comment?')) return;
+      try {
+        const res = await fetch(`${API_URL}/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
+        if (res.ok) {
+          alert('Comment deleted successfully');
+          closePostModal();
+          renderPosts();
+        }
+      } catch (err) {
+        alert('Failed to delete comment!');
+      }
+    }
+
+    async function openProfileModal(userId) {
+      try {
+        const res = await fetch(`${API_URL}/users/${userId}`);
+        if (!res.ok) {
+          alert('User profile not found!');
+          return;
+        }
+        const user = await res.json();
+        const detailsContainer = document.getElementById('profileDetails');
+        
+        let extraInfo = '';
+        if (user.role === 'Service Provider') {
+          extraInfo = `
+            <p><strong>Total Works Completed:</strong> <span class="text-green-600 font-bold">${user.workingCount || 0}</span></p>
+            <p><strong>Rating:</strong> <span class="text-amber-500 font-bold">${user.rating || '5.0'} ⭐</span></p>
+          `;
+        } else {
+          extraInfo = `<p><strong>Rating:</strong> <span class="text-amber-500 font-bold">${user.rating || '5.0'} ⭐</span></p>`;
+        }
+
+        detailsContainer.innerHTML = `
+          <p><strong>Name:</strong> ${user.name || 'N/A'}</p>
+          <p><strong>Role:</strong> <span class="px-2 py-0.5 rounded text-xs ${user.role === 'Admin' ? 'bg-purple-100 text-purple-700' : user.role === 'Service Provider' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${user.role}</span></p>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Mobile:</strong> ${user.mobile || 'N/A'}</p>
+          <p><strong>Address:</strong> ${user.address || 'N/A'}</p>
+          ${extraInfo}
+        `;
+
+        const ratingSection = document.getElementById('ratingSection');
+        if (currentUser && currentUser._id !== user._id) {
+          ratingSection.classList.remove('hidden');
+          document.getElementById('submitRatingBtn').onclick = () => submitRating(user._id);
+        } else {
+          ratingSection.classList.add('hidden');
+        }
+
+        document.getElementById('profileModal').classList.remove('hidden');
+      } catch (err) {
+        alert('Failed to fetch user profile details!');
+      }
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    async function submitRating(userId) {
+      const ratingVal = document.getElementById('userRatingInput').value;
+      try {
+        const res = await fetch(`${API_URL}/users/${userId}/rate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rating: ratingVal })
+        });
+        if (res.ok) {
+          alert('Rating submitted successfully!');
+          closeProfileModal();
+        }
+      } catch (err) {
+        alert('Failed to submit rating!');
       }
     }
 
@@ -442,8 +652,63 @@
       }
     }
 
-    async function handleAddComment(postId) {
-      const inputEl = document.getElementById(`commentInput-${postId}`);
+    function openPostModal(post) {
+      currentViewingPost = post;
+      document.getElementById('modalCategory').innerText = post.category;
+      
+      const custNameEl = document.getElementById('modalCustomerName');
+      custNameEl.innerHTML = `<i class="fa-solid fa-user"></i> Posted by: ${post.customerName}`;
+      custNameEl.onclick = () => openProfileModal(post.userId);
+
+      document.getElementById('modalDetails').innerText = post.details;
+
+      const imgContainer = document.getElementById('modalImageContainer');
+      if (post.image) {
+        imgContainer.innerHTML = `<div class="my-3 overflow-hidden rounded-lg border max-h-80"><img src="${post.image}" alt="Post Image" class="w-full object-cover"></div>`;
+      } else {
+        imgContainer.innerHTML = '';
+      }
+
+      const commentsContainer = document.getElementById('modalCommentsContainer');
+      if (post.comments && post.comments.length > 0) {
+        commentsContainer.innerHTML = post.comments.map(c => `
+          <div class="bg-gray-50 p-2.5 rounded text-xs border flex justify-between items-center">
+            <div>
+              <span class="font-bold text-indigo-600 cursor-pointer hover:underline" onclick="openProfileModal('${c.userId}')"><i class="fa-solid fa-user-circle"></i> ${c.userName}:</span>
+              <span class="text-gray-700 ml-1">${c.text}</span>
+            </div>
+            ${currentUser && currentUser.role === 'Admin' ? `<button onclick="deleteComment('${post._id}', '${c.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold ml-2">Delete</button>` : ''}
+          </div>
+        `).join('');
+      } else {
+        commentsContainer.innerHTML = `<p class="text-xs text-gray-400 italic">এখনো কোনো কমেন্ট করা হয়নি।</p>`;
+      }
+
+      const inputSection = document.getElementById('modalCommentInputSection');
+      if (currentUser && currentUser.role === 'Service Provider') {
+        inputSection.innerHTML = `
+          <input type="text" id="modalCommentInput" placeholder="কমেন্ট লিখুন..." class="flex-1 border p-2 rounded text-xs outline-none focus:border-indigo-500">
+          <button onclick="handleAddModalComment('${post._id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs font-semibold hover:bg-indigo-700 transition">Comment</button>
+        `;
+      } else {
+        inputSection.innerHTML = `<p class="text-xs text-amber-600 font-medium italic"><i class="fa-solid fa-circle-info"></i> কেবল Service Provider-রা এই পোস্টে কমেন্ট করতে পারবেন।</p>`;
+      }
+
+      document.getElementById('postModal').classList.remove('hidden');
+    }
+
+    function closePostModal() {
+      document.getElementById('postModal').classList.add('hidden');
+      currentViewingPost = null;
+    }
+
+    async function handleAddModalComment(postId) {
+      if (!currentUser || currentUser.role !== 'Service Provider') {
+        alert('shudhu Service Provider comment korte parbe!');
+        return;
+      }
+
+      const inputEl = document.getElementById('modalCommentInput');
       const text = inputEl.value.trim();
       if (!text) {
         alert('কমেন্ট লিখতে কিছু টাইপ করুন!');
@@ -452,8 +717,8 @@
 
       const commentData = {
         id: Date.now(),
-        userId: currentUser ? currentUser._id : 'guest',
-        userName: currentUser ? currentUser.name : 'Guest User',
+        userId: currentUser._id,
+        userName: currentUser.name,
         text: text
       };
 
@@ -464,7 +729,8 @@
           body: JSON.stringify(commentData)
         });
         if (res.ok) {
-          inputEl.value = '';
+          const updatedPost = await res.json();
+          openPostModal(updatedPost);
           renderPosts();
         } else {
           alert('কমেন্ট যোগ করা যায়নি!');
@@ -492,38 +758,34 @@
         const filteredPosts = selectedCat === 'All' ? posts : posts.filter(post => post.category === selectedCat);
 
         if (filteredPosts.length === 0) {
-          container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-gray-500 border">এই ক্যাটাগরিতে কোনো পোস্ট পাওয়া যায়নি।</div>`;
+          container.innerHTML = `<div class="col-span-full bg-white p-6 rounded-xl text-center text-gray-500 border">এই ক্যাটাগরিতে কোনো পোস্ট পাওয়া যায়নি।</div>`;
           return;
         }
 
         filteredPosts.forEach(post => {
-          const imageHtml = post.image ? `<div class="my-3 overflow-hidden rounded-lg border"><img src="${post.image}" alt="Post Image" class="w-full max-h-80 object-cover"></div>` : '';
-          
-          let commentsHtml = '';
-          if (post.comments && post.comments.length > 0) {
-            commentsHtml = post.comments.map(c => `<div class="bg-gray-50 p-2.5 rounded text-xs border space-y-1"><span class="font-bold text-indigo-600"><i class="fa-solid fa-user-circle"></i>${c.userName}:</span> <span class="text-gray-700">${c.text}</span></div>`).join('');
-          } else {
-            commentsHtml = `<p class="text-xs text-gray-400 italic">এখনো কোনো কমেন্ট করা হয়নি।</p>`;
-          }
+          const shortDetails = post.details.length > 80 ? post.details.substring(0, 80) + '...' : post.details;
+          const imageThumb = post.image ? `<img src="${post.image}" class="w-full h-32 object-cover rounded-md my-2">` : '';
 
-          container.innerHTML += `
-            <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-              <div class="flex justify-between items-start">
-                <span class="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md font-bold">${post.category}</span>
-                <span class="text-xs text-gray-400"><i class="fa-solid fa-user"></i> ${post.customerName}</span>
+          const card = document.createElement('div');
+          card.className = "bg-white p-4 rounded-xl shadow-sm border hover:shadow-md transition flex flex-col justify-between cursor-pointer";
+          card.onclick = () => openPostModal(post);
+
+          card.innerHTML = `
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">${post.category}</span>
+                <span class="text-xs text-gray-400" onclick="event.stopPropagation(); openProfileModal('${post.userId}')"><i class="fa-solid fa-user"></i> ${post.customerName}</span>
               </div>
-              <p class="text-sm text-gray-800 leading-relaxed font-medium">${post.details}</p>
-              ${imageHtml}
-              <div class="border-t pt-3 mt-3 space-y-3">
-                <h4 class="text-xs font-bold text-gray-600 flex items-center gap-1"><i class="fa-regular fa-comments text-indigo-500"></i>কমেন্টসমূহ (${post.comments ? post.comments.length : 0}):</h4>
-                <div class="space-y-2 max-h-48 overflow-y-auto">${commentsHtml}</div>
-                <div class="flex gap-2 pt-1">
-                  <input type="text" id="commentInput-${post._id}" placeholder="কমেন্ট লিখুন..." class="flex-1 border p-2 rounded text-xs outline-none focus:border-indigo-500">
-                  <button onclick="handleAddComment('${post._id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs font-semibold hover:bg-indigo-700 transition">Comment</button>
-                </div>
-              </div>
+              ${imageThumb}
+              <p class="text-xs text-gray-700 font-medium leading-relaxed my-2">${shortDetails}</p>
+            </div>
+            <div class="border-t pt-2 mt-2 flex justify-between items-center text-xs text-gray-500">
+              <span><i class="fa-regular fa-comments"></i> ${post.comments ? post.comments.length : 0} Comments</span>
+              <span class="text-indigo-600 font-bold hover:underline">View Details <i class="fa-solid fa-angle-right"></i></span>
             </div>
           `;
+
+          container.appendChild(card);
         });
       } catch (err) {
         console.error('Error fetching posts:', err);
